@@ -1,0 +1,154 @@
+**CHECKLIST MVP: API + Postgres (do início ao deploy)**
+
+Contexto
+- Este checklist foi ajustado para considerar apenas os arquivos base: STACK TECNOLÓGICA.md, ARQUITETURA FINAL DO SISTEMA.md e MANUAL CANÔNICO COMPLETO.md. Não considera planilhas ou Apps Script; a ingestão inicial de dados será via CSV/JSON/clients externos ou via API.
+
+Observação inicial
+- Inclui práticas mínimas de DevOps, segurança e testes para tornar o MVP confiável e evolutivo ao produto final. Itens marcados como "opcional" podem ser postergados.
+
+Fase 0 — Preparação e decisões iniciais (30–90 min) — Prioridade: Alta
+* Definir objetivo do MVP (ex.: cadastro e validação de atletas + logs + POC IA) com base no MANUAL CANÔNICO COMPLETO.md.  
+* Revisar decisões tecnológicas em STACK TECNOLÓGICA.md (Supabase, Vercel, libs).  
+* Verificar arquitetura esperada em ARQUITETURA FINAL DO SISTEMA.md e alinhar escopo do MVP.  
+* Criar conta(s) necessárias (Supabase, Vercel, GitHub).  
+* Criar `.env.example` com variáveis necessárias (DB_URL, SECRET_KEY, SENTRY_DSN, etc.).  
+  Tempo estimado: 0.5–1.5h  
+  Critério de aceitação: contas criadas; `.env.example` no repositório; escopo do MVP documentado.
+
+Fase 1 — Modelagem de dados (schema) (1–3 horas) — Prioridade: Alta
+* Mapear e documentar o schema da tabela `athletes` a partir do MANUAL CANÔNICO COMPLETO.md (colunas, tipos, NOT NULL, UNIQUE).  
+* Incluir índices/constraints essenciais (unique on `athlete_id`, index em `created_at`, CHECKs, considerar índices para busca conforme ARQUITETURA).  
+* Produzir JSON Schema para validação de payloads da API (campos obrigatórios, formatos de data, enums como `category`).  
+* Definir identificadores (`athlete_id`, `row_uuid`) e timestamps (`created_at`/`updated_at`).  
+  Tempo estimado: 1–3h  
+  Critério de aceitação: SQL e JSON Schema aprovados; índices/constraints listados.
+
+Fase 2 — Provisionamento do banco (30–60 min) — Prioridade: Alta
+* Criar projeto no Supabase (ou provedor escolhido conforme STACK TECNOLÓGICA.md).  
+* Rodar o script `CREATE TABLE` (criar `athletes` + índices/constraints).  
+* Habilitar extensões necessárias (ex.: `pgvector` apenas se RAG/embeddings forem parte do escopo inicial).  
+* Configurar backups automáticos e política de retenção.  
+  Tempo estimado: 0.5–1h  
+  Critério de aceitação: tabela criada e backups ativados.
+
+Antes da Fase 3 (após Fase 2)
+* Gerar OpenAPI (spec) com endpoints e exemplos de payload (contrato único para frontend/clients).  
+* Configurar migrations (Alembic) no repositório.  
+* Adicionar `Dockerfile` e `docker-compose.yml` para dev local.  
+* Definir Definition of Done (DoD) para endpoints.
+
+Fase 3 — Desenvolvimento da API (backend) (1–3 dias) — Prioridade: Alta
+* Criar repositório Git no GitHub.  
+* Implementar API (recomendado FastAPI) com endpoints mínimos (baseados em ARQUITETURA FINAL DO SISTEMA.md e MANUAL CANÔNICO):
+  1. GET /athletes (lista, paginado)  
+  2. GET /athletes/{athlete_id}  
+  3. POST /athletes (cria/upsert)  
+  4. PUT /athletes/{athlete_id} (atualiza)  
+  5. POST /forms/{form_id}/responses (recebe respostas/processos)
+* Integrar com Postgres (SQLAlchemy/asyncpg/Supabase client) e implementar upsert por `athlete_id`/`row_uuid`.  
+* Validar payloads com Pydantic (usar JSON Schema como fonte).  
+* Adicionar GitHub Actions (lint → tests → contract tests).  
+* Dockerfile básico, logging estruturado (request_id) e integração com Sentry.  
+* Implementar migrations (Alembic) e seed/fixtures (CSV/JSON) para ambiente de teste.  
+* Tratamento consistente de erros (400/422/500).  
+  Tempo estimado: 1–3 dias  
+  Critério de aceitação: endpoints funcionais localmente; tests unitários e contract tests OK.
+
+Fase 4 — Autenticação e segurança da API (2–8 horas) — Prioridade: Alta
+* Decidir e implementar método de autenticação (Supabase Auth recomendado; JWT/API keys se custom).  
+* Proteger rotas de escrita (POST/PUT) e endpoints administrativos.  
+* Habilitar CORS restrito e health check (`/health`).  
+* Implementar rate limiting e limites de tamanho de request.  
+* Não expor segredos no código; usar Secret Manager/variáveis de ambiente.  
+  Tempo estimado: 2–8h  
+  Critério de aceitação: apenas requests autenticados conseguem criar/atualizar; CORS e rate limit configurados.
+
+Fase 5 — Frontend leve / Dashboard (1–5 dias) — Prioridade: Média-Alta
+* Escolher abordagem (Next.js recomendado).  
+* Implementar formulário mínimo que chame `POST /athletes` e listagem `GET /athletes`.  
+* Implementar autenticação básica no frontend e tratamento de erros vindos da API.  
+* Configurar baseURL por ambiente (dev/staging/prod).  
+  Tempo estimado: 1–5 dias  
+  Critério de aceitação: usuário autentica e cria/lista atletas via UI.
+
+Fase 6 — Importadores / Clients externos (opcional, para ingestão inicial) (2–6 horas) — Prioridade: Média
+* Substitui referência a planilhas: implementar importadores via CSV/JSON ou endpoints de ingestão de clientes externos.  
+* Criar scripts de seed (CSV/JSON) para popular DB em dev/staging.  
+* Documentar formato de import (ex.: CSV headers ↔ campos do DB) e garantir validação via JSON Schema.  
+  Tempo estimado: 2–6h  
+  Critério de aceitação: importadores conseguem popular DB de forma idempotente.
+
+Fase 7 — Migração / ETL de dados históricos (2–6 horas) — Prioridade: Média
+* Escrever script ETL idempotente que leia CSV/JSON local ou API externa, normalize campos e faça upsert no Postgres.  
+* Implementar `--dry-run`, logs e processamento em batches; marcar `migrated_at`.  
+* Validar integridade pós-migração (contagens, amostras).  
+  Tempo estimado: 2–6h  
+  Critério de aceitação: dados migrados sem perda e script re‑executável sem duplicação.
+
+Fase 8 — Worker / Processamento assíncrono (opcional POC) (4–16 horas)
+* Implementar runner leve (background job/RQ/simple worker) para tarefas demoradas (ex.: chamadas ao LLM).  
+* Criar job que chama LLM com prompt (usando trechos do MANUAL CANÔNICO COMPLETO.md) e grava `processed_responses`.  
+* Validar saída do LLM com JSON Schema antes de persistir.  
+* Medir latência/throughput; evoluir para Celery/Redis apenas se necessário.  
+* Planejar uso de embeddings/pgvector apenas se RAG for parte do escopo.  
+  Tempo estimado: 4–16h  
+  Critério de aceitação: jobs processados e resultados gravados; métricas básicas coletadas.
+
+Fase 9 — Testes, QA e validação (4–12 horas) — Prioridade: Alta
+* Testes manuais ponta a ponta (frontend → API → DB → worker).  
+* Testes de erro (payload inválido, duplicidade, datas).  
+* Testes automatizados (unit + integração) e contract tests contra OpenAPI.  
+* Testes de carga leve (smoke).  
+* Criar staging environment e testar rollback.  
+* Testar restore de backups (procedimento documentado).  
+  Tempo estimado: 4–12h  
+  Critério de aceitação: testes automatizados passam; rollback e restore validados.
+
+Fase 10 — Deploy e operação (1–4 horas) — Prioridade: Alta
+* Deploy backend (Railway/Render/Vercel Serverless) com variáveis de ambiente.  
+* Deploy frontend (Vercel/Netlify).  
+* Pipeline CI: lint → tests → contract tests → deploy staging → promoção para prod por PR aprovado.  
+* Configurar backups automáticos e monitoramento (Sentry/logs).  
+* Habilitar HTTPS e revisar permissões (IAM).  
+  Tempo estimado: 1–4h  
+  Critério de aceitação: sistema disponível em URL pública e deploy pipeline operacional.
+
+Fase 11 — Segurança, compliance e observability (2–8 horas) — Prioridade: Alta
+* Segredos em Secret Manager / variáveis de ambiente seguras.  
+* Roles/permissions no DB (apenas API com credenciais de escrita).  
+* Logs de auditoria (`created_by`/`updated_by`) e gravação de consentimento (timestamp + versão do termo) conforme MANUAL CANÔNICO.  
+* Rotação de chaves/credentials e política documentada.  
+* Métricas/alertas (p95 latency, errors/s, queue length, backups OK).  
+  Tempo estimado: 2–8h  
+  Critério de aceitação: conformidade básica verificada; logs e métricas disponíveis.
+
+Fase 12 — Monitoramento e manutenção (contínuo)
+* Alertas de erro (Sentry) e monitoramento de saúde (uptime).  
+* Manutenção e backups periódicos; testar restore periodicamente.  
+* Reuniões regulares para priorizar melhorias.  
+* Checklist periódico (rotacionar chaves, revisar permissões, testar restore, revisar custos).  
+
+Boas práticas operacionais (aplicar desde o início)
+* Use `row_uuid` e registre `created_by`/`updated_by`.  
+* Padronize nomes em snake_case entre specs e DB.  
+* Defina limites de `page_size` e paginação.  
+* Incluir `request_id` nos logs.  
+* Documentar runbook para rollback/incident response.  
+* Não colocar chaves sensíveis em clientes; preferir service account/backend.
+
+Próximos passos recomendados (curto prazo)
+1. Criar repositório e `.env.example`.  
+2. Escrever OpenAPI spec mínimo (contrato).  
+3. Provisionar Supabase e aplicar `CREATE TABLE` + índices.  
+4. Scaffolding FastAPI + Alembic + Docker compose; implementar `POST /athletes`.  
+5. Criar GitHub Actions para CI (lint/tests/contract tests) e deploy para staging.  
+
+Artefatos que posso gerar imediatamente (baseado nos arquivos base)
+* OpenAPI spec (YAML/JSON).  
+* SQL `CREATE TABLE` (com índices/constraints) + Alembic migration.  
+* JSON Schema + modelos Pydantic.  
+* FastAPI skeleton (endpoints básicos + upsert).  
+* `Dockerfile` + `docker-compose.yml` para dev.  
+* Template GitHub Actions (CI pipeline).  
+
+Responda quais artefatos quer que eu gere primeiro (ex.: "OpenAPI + SQL + FastAPI") e eu crio os arquivos prontos.
