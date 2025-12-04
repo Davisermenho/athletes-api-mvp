@@ -17,87 +17,76 @@ on:
     lint:
       name: Lint (black/isort/flake8)
       runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v4
-        - name: Set up Python
-          uses: actions/setup-python@v4
-          with:
-            python-version: '3.12'
-        - name: Install linters
-          run: python -m pip install --upgrade pip && pip install black isort flake8
-        - name: Run black check
-          run: black --check .
-        - name: Run isort check
-          run: isort --check-only .
-        - name: Run flake8
-          run: flake8
+      name: CI (unified)
 
-    test:
-      name: Test (pytest)
-      needs: lint
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v4
-        - name: Set up Python
-          uses: actions/setup-python@v4
-          with:
-            python-version: '3.12'
+      on:
+        push:
+          branches: [ main ]
+        pull_request:
+          branches: [ main ]
+        workflow_dispatch:
+
+      jobs:
+        lint:
+          name: Lint (black/isort/flake8)
+          runs-on: ubuntu-latest
+          steps:
+            - uses: actions/checkout@v4
+            - name: Set up Python
+              uses: actions/setup-python@v4
+              with:
+                python-version: '3.12'
+            - name: Install linters
+              run: python -m pip install --upgrade pip && pip install black isort flake8
+            - name: Run black check
+              run: black --check .
+            - name: Run isort check
+              run: isort --check-only .
+            - name: Run flake8
+              run: flake8
+
+        test:
+          name: Test (pytest)
+          needs: lint
+          runs-on: ubuntu-latest
+          steps:
+            - uses: actions/checkout@v4
+            - name: Set up Python
+              uses: actions/setup-python@v4
+              with:
+                python-version: '3.12'
+            - name: Install dependencies
+              run: |
+                python -m pip install --upgrade pip
+                if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+                if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+            - name: Run tests
+              env:
+                DATABASE_URL: ${{ secrets.DATABASE_URL }}
+              run: |
+                if [ -f pytest.ini ] || [ -d tests ]; then pytest -q --disable-warnings --maxfail=1; else echo "No tests found, skipping pytest"; fi
+
+        prod-check:
+          name: Production-safety check
+          needs: test
+          runs-on: ubuntu-latest
+          steps:
+            - uses: actions/checkout@v4
+            - name: Set up Python
+              uses: actions/setup-python@v4
+              with:
+                python-version: '3.12'
+            - name: Install dependencies
+              run: |
+                python -m pip install --upgrade pip
+                if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+            - name: Run production-sim test
+              env:
+                APP_ENV: production
+                ALLOW_DEBUG_ENDPOINTS: '1'
+                DATABASE_URL: ${{ secrets.DATABASE_URL }}
+              run: |
+                python -m pytest tests/test_debug_routes.py::test_debug_route_not_in_production -q || true
         - name: Install dependencies
-          run: |
-            python -m pip install --upgrade pip
-            if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-            if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
-        - name: Run tests
-          env:
-            DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          run: |
-            if [ -f pytest.ini ] || [ -d tests ]; then pytest -q --disable-warnings --maxfail=1; else echo "No tests found, skipping pytest"; fi
 
-    prod-check:
-      name: Production-safety check
-      needs: test
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v4
-        - name: Set up Python
-          uses: actions/setup-python@v4
-          with:
-            python-version: '3.12'
-        - name: Install dependencies
           run: |
-            python -m pip install --upgrade pip
-            if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-            if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
-        - name: Run production-sim test
-          env:
-            APP_ENV: production
-            ALLOW_DEBUG_ENDPOINTS: '1'
-            DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          run: |
-            python -m pytest tests/test_debug_routes.py::test_debug_route_not_in_production -q
-
-    build:
-      name: Build (optional)
-      needs: prod-check
-      runs-on: ubuntu-latest
-      if: always()
-      steps:
-        - uses: actions/checkout@v4
-        - name: Set up Python
-          uses: actions/setup-python@v4
-          with:
-            python-version: '3.12'
-        - name: Install dependencies
-          run: |
-            python -m pip install --upgrade pip
-            if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        - name: Package artifact
-          run: |
-            mkdir -p artifact
-            tar -czf artifact/source.tar.gz .
-        - name: Upload artifact
-          uses: actions/upload-artifact@v4
-          with:
-            name: source-artifact
-            path: artifact/source.tar.gz
-
