@@ -46,7 +46,9 @@ class SecondaryDefensivePosition(str, Enum):
 
 
 class AthleteBase(BaseModel):
-    athlete_id: str = Field(..., description="Business identifier for the athlete (unique).")
+    athlete_id: str = Field(
+        ..., description="Business identifier for the athlete (unique)."
+    )
     row_uuid: Optional[UUID] = Field(None, description="Row UUID (gen_random_uuid()).")
     full_name: str = Field(..., description="Full name of the athlete.")
     nickname: Optional[str] = None
@@ -78,6 +80,7 @@ class AthleteCreate(AthleteBase):
 
     Required fields: `athlete_id`, `full_name`.
     """
+
     athlete_id: str
     full_name: str
 
@@ -89,6 +92,7 @@ class AthleteRead(AthleteBase):
     # so detect version and set the appropriate configuration.
     try:
         import pydantic as _pyd
+
         _ver = getattr(_pyd, "__version__", "0")
         _major = int(_ver.split(".")[0]) if _ver and _ver[0].isdigit() else 0
     except Exception:
@@ -97,5 +101,6 @@ class AthleteRead(AthleteBase):
     if _major >= 2:
         model_config = {"from_attributes": True}
     else:
+
         class Config:
             orm_mode = True

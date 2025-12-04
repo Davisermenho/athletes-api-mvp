@@ -3,6 +3,7 @@
 Instructions: install `jsonschema` (e.g., `pip install jsonschema`) then run
 `python tmp/validate_jsonschema.py`.
 """
+
 import json
 from jsonschema import validate, ValidationError
 

@@ -3,6 +3,7 @@
 This script uses requests to call the local API and psycopg2 to query the DB.
 Run with `PYTHONPATH=. python tmp/integration_test.py` after loading .env.
 """
+
 import os
 import time
 import json
