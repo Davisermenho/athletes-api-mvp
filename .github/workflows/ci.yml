@@ -7,11 +7,33 @@ on:
     branches: [ main ]
 
 jobs:
+  lint:
+    name: Lint and format checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      - name: Install linters
+        run: |
+          python -m pip install --upgrade pip
+          pip install black isort flake8
+      - name: Run format check (black)
+        run: |
+          black --check .
+      - name: Run import sort check (isort)
+        run: |
+          isort --check-only .
+      - name: Run linter (flake8)
+        run: |
+          flake8
+
   test:
     name: Run tests
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
+    needs: lint
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -22,12 +44,17 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt -r requirements-dev.txt
-      - name: Run tests
+      - name: Run test suite
         env:
-          # default test environment (debug endpoints not required globally)
           APP_ENV: development
         run: |
           python -m pytest -q
+      - name: Upload test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs
+          path: .
 
   prod-check:
     name: Production debug-safety check
@@ -45,83 +72,7 @@ jobs:
           python -m pip install -r requirements.txt -r requirements-dev.txt
       - name: Run production-sim test
         env:
-          # Simulate dangerous config to ensure debug endpoints are not mounted
           APP_ENV: production
           ALLOW_DEBUG_ENDPOINTS: '1'
         run: |
-          # Tests include assertions that debug endpoints are absent in production
           python -m pytest tests/test_debug_routes.py::test_debug_route_not_in_production -q
-name: CI
-
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      - name: Cache pip
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-
-      - name: Install dev dependencies (linters)
-        run: |
-          pip install black isort flake8
-
-      - name: Run format check (black)
-        run: |
-          black --check .
-
-      - name: Run import sort check (isort)
-        run: |
-          isort --check-only .
-
-      - name: Run linter (flake8)
-        run: |
-          flake8
-
-      - name: Run tests (pytest)
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: |
-          if [ -f pytest.ini ] || [ -d tests ]; then pytest -q --disable-warnings --maxfail=1; else echo "No tests found, skipping pytest"; fi
-
-      - name: Contract tests (placeholder)
-        run: |
-          echo "Run contract tests against OpenAPI spec (implement test suite)"
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-logs
-          path: .
-
-      - name: Success message
-        if: success()
-        run: echo "CI pipeline completed successfully"
-
-      - name: Failure message
-        if: failure()
-        run: echo "CI pipeline failed - check logs"
