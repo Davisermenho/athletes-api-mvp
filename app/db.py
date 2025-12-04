@@ -5,14 +5,23 @@ from typing import Any, Dict, Optional
 from sqlalchemy import create_engine, text
 
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-if not DATABASE_URL:
-    raise RuntimeError("DATABASE_URL is not set. Set DATABASE_URL to a Postgres URL before using the DB helpers.")
+def _get_database_url() -> str:
+    """Return the DATABASE_URL from environment or raise at runtime.
+
+    This defers the import-time error so tests can import modules that
+    don't actually need a DB connection.
+    """
+    url = os.getenv("DATABASE_URL")
+    if not url:
+        raise RuntimeError(
+            "DATABASE_URL is not set. Set DATABASE_URL to a Postgres URL before using the DB helpers."
+        )
+    return url
 
 
 def _get_engine():
     # use SQLAlchemy sync engine (sufficient for basic upsert operations)
-    return create_engine(DATABASE_URL, future=True)
+    return create_engine(_get_database_url(), future=True)
 
 
 def upsert_athlete(payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -20,7 +29,9 @@ def upsert_athlete(payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
 
     This implementation requires a Postgres database (uses ON CONFLICT).
     """
-    if "postgres" not in DATABASE_URL and "postgresql" not in DATABASE_URL:
+    # verify DATABASE_URL at runtime (deferred) and ensure it's Postgres
+    db_url = _get_database_url()
+    if "postgres" not in db_url and "postgresql" not in db_url:
         raise RuntimeError("upsert_athlete currently supports Postgres only (DATABASE_URL must be Postgres).")
 
     engine = _get_engine()
