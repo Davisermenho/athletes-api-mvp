@@ -1,9 +1,8 @@
-import os
 import json
+import os
 from typing import Any, Dict, Optional
 
 from sqlalchemy import create_engine, text
-
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:

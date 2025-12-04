@@ -1,8 +1,10 @@
 import os
-from fastapi import APIRouter, HTTPException, Depends, Header
+
+from fastapi import APIRouter, Depends, Header, HTTPException
 from starlette.concurrency import run_in_threadpool
-from app.schemas import AthleteRead
+
 from app.db import get_athlete_by_athlete_id
+from app.schemas import AthleteRead
 
 router = APIRouter(prefix="/_debug")
 

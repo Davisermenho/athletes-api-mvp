@@ -4,13 +4,12 @@ This script uses requests to call the local API and psycopg2 to query the DB.
 Run with `PYTHONPATH=. python tmp/integration_test.py` after loading .env.
 """
 
+import json
 import os
 import time
-import json
+from datetime import datetime
 
 import requests
-
-from datetime import datetime
 
 DB_URL = os.getenv("DATABASE_URL")
 API_URL = os.getenv("API_URL", "http://127.0.0.1:8000")

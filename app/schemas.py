@@ -4,11 +4,12 @@ These models mirror the canonical athlete header defined in the project.
 Enums are provided for position fields to ensure a stable contract.
 """
 
+from datetime import date, datetime
 from enum import Enum
-from pydantic import BaseModel, Field
 from typing import Optional
 from uuid import UUID
-from datetime import date, datetime
+
+from pydantic import BaseModel, Field
 
 
 class MainAttackPosition(str, Enum):

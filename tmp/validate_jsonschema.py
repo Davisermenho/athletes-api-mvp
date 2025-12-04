@@ -5,8 +5,8 @@ Instructions: install `jsonschema` (e.g., `pip install jsonschema`) then run
 """
 
 import json
-from jsonschema import validate, ValidationError
 
+from jsonschema import ValidationError, validate
 
 with open("schemas/athlete.json", "r", encoding="utf-8") as f:
     schema = json.load(f)

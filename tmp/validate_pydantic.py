@@ -11,7 +11,6 @@ from datetime import date
 
 from app.schemas import AthleteCreate
 
-
 example = {
     "athlete_id": "A1",
     "full_name": "Maria Silva",

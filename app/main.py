@@ -1,5 +1,6 @@
-from fastapi import FastAPI
 import os
+
+from fastapi import FastAPI
 
 from app.routes import router
 
