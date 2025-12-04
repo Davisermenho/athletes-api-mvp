@@ -1,0 +1,4 @@
+pytest
+	# dependencies needed by tests in the container
+	httpx
+	requests

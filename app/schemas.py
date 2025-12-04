@@ -84,11 +84,18 @@ class AthleteCreate(AthleteBase):
 
 class AthleteRead(AthleteBase):
     id: int = Field(..., description="Internal DB id")
+    # Configure compatibility with pydantic v1 vs v2 at runtime.
+    # pydantic v2 raises if both `Config` and `model_config` are present,
+    # so detect version and set the appropriate configuration.
+    try:
+        import pydantic as _pyd
+        _ver = getattr(_pyd, "__version__", "0")
+        _major = int(_ver.split(".")[0]) if _ver and _ver[0].isdigit() else 0
+    except Exception:
+        _major = 0
 
-    # Support pydantic v1 (`Config.orm_mode`) and v2 (`model_config`) so this
-    # model works in either environment. The project may use pydantic v2; keep
-    # both for compatibility during migration.
-    class Config:
-        orm_mode = True
-
-    model_config = {"from_attributes": True}
+    if _major >= 2:
+        model_config = {"from_attributes": True}
+    else:
+        class Config:
+            orm_mode = True
