@@ -8,7 +8,6 @@ from sqlalchemy import create_engine, text
 # flake8: noqa: E501
 
 
-
 def _get_database_url() -> str:
     """Return the DATABASE_URL from environment or raise at runtime.
 
