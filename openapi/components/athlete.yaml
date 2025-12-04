@@ -1,0 +1,135 @@
+components:
+  schemas:
+    AthleteBase:
+      type: object
+      description: "Base athlete schema - contains all fields used across create/read models."
+      required:
+        - athlete_id
+        - full_name
+      additionalProperties: false
+      properties:
+        athlete_id:
+          type: string
+          description: Business identifier for the athlete (unique).
+        row_uuid:
+          type: string
+          format: uuid
+          description: UUID row identifier (gen_random_uuid()).
+        full_name:
+          type: string
+        nickname:
+          type: string
+          nullable: true
+        birth_date:
+          type: string
+          format: date
+          nullable: true
+        age_display:
+          type: string
+          nullable: true
+        category:
+          type: string
+          nullable: true
+        main_attack_position:
+          type: string
+          nullable: true
+          enum: [armadora_central, lateral_esquerda, lateral_direita, ponta_esquerda, ponta_direita, pivo]
+          x-ui:
+            widget: select
+            placeholder: Selecione...
+        secondary_attack_position:
+          type: string
+          nullable: true
+          enum: ["central", "lateral_esquerda", "lateral_direita", "ponta_esquerda", "ponta_direita", "pivo"]
+          x-ui:
+            widget: select
+            placeholder: Selecione...
+        main_defensive_position:
+          type: string
+          nullable: true
+          enum: ["1_defensora", "2_defensora", "defensora_base", "goleira", "defensora_avancada"]
+          x-ui:
+            widget: select
+            placeholder: Selecione...
+        secondary_defensive_position:
+          type: string
+          nullable: true
+          enum: ["1_defensora", "2_defensora", "defensora_base", "goleira", "defensora_avancada"]
+          x-ui:
+            widget: select
+            placeholder: Selecione...
+        jersey_number:
+          type: integer
+          minimum: 0
+          nullable: true
+        date_joined:
+          type: string
+          format: date
+          nullable: true
+        date_left:
+          type: string
+          format: date
+          nullable: true
+        active_flag:
+          type: boolean
+          default: true
+        height_cm:
+          type: integer
+          minimum: 0
+          nullable: true
+        weight_kg:
+          type: number
+          minimum: 0
+          nullable: true
+        medical_notes:
+          type: string
+          nullable: true
+        social_notes:
+          type: string
+          nullable: true
+        physical_notes:
+          type: string
+          nullable: true
+        mental_notes:
+          type: string
+          nullable: true
+        external_reference:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        last_sync_at:
+          type: string
+          format: date-time
+
+    AthleteCreate:
+      allOf:
+        - $ref: '#/components/schemas/AthleteBase'
+      description: Schema used when creating/upserting an athlete.
+
+    AthleteRead:
+      allOf:
+        - $ref: '#/components/schemas/AthleteBase'
+        - type: object
+          properties:
+            id:
+              type: integer
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+            last_sync_at:
+              type: string
+              format: date-time
+
+# Notes:
+# - Enums and display hints are provided to help UI renderers. If you find
+#   inconsistent spellings for positions elsewhere (e.g. "latera_direita"),
+#   prefer standardizing to "lateral_direita" and document the change before
+#   applying it to historical data.

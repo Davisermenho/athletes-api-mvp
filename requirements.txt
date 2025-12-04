@@ -4,3 +4,4 @@ pydantic
 alembic
 SQLAlchemy
 psycopg2-binary
+email-validator

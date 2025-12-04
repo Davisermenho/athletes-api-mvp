@@ -1,0 +1,13 @@
+version: '3.8'
+services:
+  app-test:
+    build: .
+    container_name: athletes_api_test
+    environment:
+      APP_ENV: "development"
+      ALLOW_DEBUG_ENDPOINTS: "1"
+      DATABASE_URL: "sqlite:///:memory:"
+    # run tests then exit
+    command: ["python", "-m", "pytest", "-q"]
+    # no volumes: use image snapshot for reproducibility
+    restart: "no"
