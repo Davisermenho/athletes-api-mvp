@@ -1,6 +1,9 @@
-import json
 import os
 from typing import Any, Dict, Optional
+
+# Allow long SQL/string literals in this file without failing flake8 line-length
+# (these are SQL migrations / long queries and are clearer kept as-is).
+# flake8: noqa: E501
 
 from sqlalchemy import create_engine, text
 

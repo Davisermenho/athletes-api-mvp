@@ -7,8 +7,6 @@ Example:
   python tmp/validate_pydantic.py
 """
 
-from datetime import date
-
 from app.schemas import AthleteCreate
 
 example = {

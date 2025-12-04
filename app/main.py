@@ -11,10 +11,10 @@ app.include_router(router)
 # Conditionally include debug-only endpoints.
 # - Developers can enable debug endpoints with ALLOW_DEBUG_ENDPOINTS=1 and APP_ENV=development
 # - Debug endpoints are never included in production builds (APP_ENV=production)
-if (
-    os.getenv("ALLOW_DEBUG_ENDPOINTS") == "1"
-    and os.getenv("APP_ENV", "development") != "production"
-):
+allow_debug = os.getenv("ALLOW_DEBUG_ENDPOINTS") == "1"
+not_production = os.getenv("APP_ENV", "development") != "production"
+
+if allow_debug and not_production:
     try:
         from app.debug_routes import router as debug_router
 

@@ -1,5 +1,4 @@
 import importlib
-import os
 
 from fastapi.testclient import TestClient
 
@@ -55,7 +54,11 @@ def _make_client(monkeypatch, env_overrides=None):
 
 def test_debug_route_included_in_development(monkeypatch):
     client = _make_client(
-        monkeypatch, {"ALLOW_DEBUG_ENDPOINTS": "1", "APP_ENV": "development"}
+        monkeypatch,
+        {
+            "ALLOW_DEBUG_ENDPOINTS": "1",
+            "APP_ENV": "development",
+        },
     )
     r = client.get("/_debug/athletes/test123")
     assert r.status_code == 200
@@ -65,7 +68,8 @@ def test_debug_route_included_in_development(monkeypatch):
 
 def test_debug_route_not_in_production(monkeypatch):
     client = _make_client(
-        monkeypatch, {"ALLOW_DEBUG_ENDPOINTS": "1", "APP_ENV": "production"}
+        monkeypatch,
+        {"ALLOW_DEBUG_ENDPOINTS": "1", "APP_ENV": "production"},
     )
     r = client.get("/_debug/athletes/test123")
     # route should not be mounted in production

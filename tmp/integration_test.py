@@ -7,7 +7,7 @@ Run with `PYTHONPATH=. python tmp/integration_test.py` after loading .env.
 import json
 import os
 import time
-from datetime import datetime
+# datetime not used in this script; remove to satisfy linters
 
 import requests
 

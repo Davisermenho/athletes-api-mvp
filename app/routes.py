@@ -21,7 +21,9 @@ async def health():
 async def create_athlete(payload: AthleteCreate):
     """Create or upsert an athlete by `athlete_id`.
 
-    Uses a Postgres `INSERT ... ON CONFLICT` upsert. DATABASE_URL must point to Postgres.
+    Uses a Postgres `INSERT ... ON CONFLICT` upsert.
+
+    DATABASE_URL must point to Postgres.
     """
     try:
         data = payload.dict()
