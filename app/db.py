@@ -26,9 +26,21 @@ def upsert_athlete(payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     engine = _get_engine()
 
     # ensure metadata is JSON string
-    metadata = payload.get("metadata") or {}
-    if not isinstance(metadata, str):
-        metadata = json.dumps(metadata)
+    metadata_val = payload.get("metadata") or {}
+    if isinstance(metadata_val, str):
+        metadata = metadata_val
+    else:
+        metadata = json.dumps(metadata_val)
+
+    # coerce dob to ISO string if it's a date/datetime
+    dob_val = payload.get("dob")
+    if dob_val is not None:
+        if hasattr(dob_val, "isoformat"):
+            dob_param = dob_val.isoformat()
+        else:
+            dob_param = str(dob_val)
+    else:
+        dob_param = None
 
     sql = text(
         """
@@ -67,7 +79,7 @@ def upsert_athlete(payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         "first_name": payload.get("first_name"),
         "last_name": payload.get("last_name"),
         "email": payload.get("email"),
-        "dob": payload.get("dob"),
+        "dob": dob_param,
         "country_code": payload.get("country_code"),
         "category": payload.get("category"),
         "gender": payload.get("gender"),
