@@ -14,16 +14,16 @@ router = APIRouter(prefix="/_debug")
 
 
 def require_admin_api_key(x_admin_api_key: str | None = Header(None)):
-        """Require an ADMIN_API_KEY when not in development.
+    """Require an ADMIN_API_KEY when not in development.
 
-        Behavior:
-        - If `APP_ENV` == 'development': allow without checking.
-            (developer convenience)
-        - Else: require `ADMIN_API_KEY` to be set and match
-            the `x-admin-api-key` header.
+    Behavior:
+    - If `APP_ENV` == 'development': allow without checking.
+      (developer convenience)
+    - Else: require `ADMIN_API_KEY` to be set and match
+      the `x-admin-api-key` header.
 
-        Note: for staging/ops you should also ensure TLS and network ACLs.
-        """
+    Note: for staging/ops you should also ensure TLS and network ACLs.
+    """
     app_env = os.getenv("APP_ENV", "development")
     admin_key = os.getenv("ADMIN_API_KEY")
     if app_env == "development":

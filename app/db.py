@@ -96,9 +96,7 @@ def upsert_athlete(payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         "row_uuid": str(payload.get("row_uuid")) if payload.get("row_uuid") else None,
         "full_name": payload.get("full_name"),
         "nickname": payload.get("nickname"),
-        "birth_date": _date_to_iso(
-            payload.get("birth_date") or payload.get("birth_date")
-        ),
+        "birth_date": _date_to_iso(payload.get("birth_date")),
         "age_display": payload.get("age_display"),
         "category": payload.get("category"),
         "main_attack_position": payload.get("main_attack_position"),
