@@ -7,9 +7,11 @@ Run with `PYTHONPATH=. python tmp/integration_test.py` after loading .env.
 import json
 import os
 import time
-# datetime not used in this script; remove to satisfy linters
 
 import requests
+
+# datetime not used in this script; remove to satisfy linters
+
 
 DB_URL = os.getenv("DATABASE_URL")
 API_URL = os.getenv("API_URL", "http://127.0.0.1:8000")

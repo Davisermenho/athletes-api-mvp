@@ -1,11 +1,12 @@
 import os
 from typing import Any, Dict, Optional
 
+from sqlalchemy import create_engine, text
+
 # Allow long SQL/string literals in this file without failing flake8 line-length
 # (these are SQL migrations / long queries and are clearer kept as-is).
 # flake8: noqa: E501
 
-from sqlalchemy import create_engine, text
 
 
 def _get_database_url() -> str:
