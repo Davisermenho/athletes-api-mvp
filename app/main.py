@@ -8,6 +8,12 @@ app = FastAPI(title="Athletes API MVP", version="0.1.0")
 
 app.include_router(router)
 
+
+@app.get("/health")
+def health():
+    """Lightweight health endpoint that does not depend on the database."""
+    return {"status": "ok"}
+
 # Conditionally include debug-only endpoints.
 # - Developers can enable debug endpoints with ALLOW_DEBUG_ENDPOINTS=1 and APP_ENV=development
 # - Debug endpoints are never included in production builds (APP_ENV=production)

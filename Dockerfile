@@ -18,4 +18,4 @@ RUN python -m pip install --upgrade pip setuptools wheel && \
 COPY . /app
 
 # Default: run tests
-CMD ["python", "-m", "pytest", "-q"]
+CMD ["sh","-c","uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
