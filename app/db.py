@@ -1,18 +1,21 @@
 import os
-import json
 from typing import Any, Dict, Optional
 
 from sqlalchemy import create_engine, text
 
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-if not DATABASE_URL:
-    raise RuntimeError("DATABASE_URL is not set. Set DATABASE_URL to a Postgres URL before using the DB helpers.")
+def _get_database_url() -> str:
+    url = os.getenv("DATABASE_URL")
+    if not url:
+        raise RuntimeError(
+            "DATABASE_URL is not set. Set DATABASE_URL to a Postgres URL before using the DB helpers."
+        )
+    return url
 
 
 def _get_engine():
     # use SQLAlchemy sync engine (sufficient for basic upsert operations)
-    return create_engine(DATABASE_URL, future=True)
+    return create_engine(_get_database_url(), future=True)
 
 
 def upsert_athlete(payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -20,11 +23,13 @@ def upsert_athlete(payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
 
     This implementation requires a Postgres database (uses ON CONFLICT).
     """
-    if "postgres" not in DATABASE_URL and "postgresql" not in DATABASE_URL:
-        raise RuntimeError("upsert_athlete currently supports Postgres only (DATABASE_URL must be Postgres).")
+    url = _get_database_url()
+    if "postgres" not in url and "postgresql" not in url:
+        raise RuntimeError(
+            "upsert_athlete currently supports Postgres only (DATABASE_URL must be Postgres)."
+        )
 
     engine = _get_engine()
-
 
     # Coerce/format a few common types
     def _date_to_iso(val):
@@ -81,7 +86,9 @@ def upsert_athlete(payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         "row_uuid": str(payload.get("row_uuid")) if payload.get("row_uuid") else None,
         "full_name": payload.get("full_name"),
         "nickname": payload.get("nickname"),
-        "birth_date": _date_to_iso(payload.get("birth_date") or payload.get("birth_date")),
+        "birth_date": _date_to_iso(
+            payload.get("birth_date") or payload.get("birth_date")
+        ),
         "age_display": payload.get("age_display"),
         "category": payload.get("category"),
         "main_attack_position": payload.get("main_attack_position"),
@@ -114,9 +121,7 @@ def upsert_athlete(payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
 def get_athlete_by_athlete_id(athlete_id: str) -> Optional[Dict[str, Any]]:
     """Return a single athlete row as dict by `athlete_id`, or None if not found."""
     engine = _get_engine()
-    sql = text(
-        "SELECT * FROM athletes WHERE athlete_id = :athlete_id LIMIT 1"
-    )
+    sql = text("SELECT * FROM athletes WHERE athlete_id = :athlete_id LIMIT 1")
     with engine.begin() as conn:
         result = conn.execute(sql, {"athlete_id": athlete_id})
         row = result.fetchone()

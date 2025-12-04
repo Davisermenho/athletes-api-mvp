@@ -3,9 +3,10 @@
 Instructions: install `jsonschema` (e.g., `pip install jsonschema`) then run
 `python tmp/validate_jsonschema.py`.
 """
-import json
-from jsonschema import validate, ValidationError
 
+import json
+
+from jsonschema import ValidationError, validate
 
 with open("schemas/athlete.json", "r", encoding="utf-8") as f:
     schema = json.load(f)
