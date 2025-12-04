@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Athlete",
+  "type": "object",
+  "required": ["athlete_id", "first_name", "last_name"],
+  "properties": {
+    "athlete_id": {"type": "string"},
+    "row_uuid": {"type": "string", "format": "uuid"},
+    "first_name": {"type": "string"},
+    "last_name": {"type": "string"},
+    "email": {"type": "string", "format": "email"},
+    "dob": {"type": "string", "format": "date"},
+    "country_code": {"type": "string"},
+    "category": {"type": "string"},
+    "gender": {"type": "string", "enum": ["male", "female", "other"]},
+    "metadata": {"type": "object"}
+  },
+  "additionalProperties": false
+}
