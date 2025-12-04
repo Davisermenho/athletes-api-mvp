@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from starlette.concurrency import run_in_threadpool
-from app.schemas import AthleteCreate, AthleteRead
+
 from app.db import upsert_athlete
+from app.schemas import AthleteCreate, AthleteRead
 
 router = APIRouter()
 

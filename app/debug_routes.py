@@ -1,8 +1,10 @@
 import os
-from fastapi import APIRouter, HTTPException, Depends, Header
+
+from fastapi import APIRouter, Depends, Header, HTTPException
 from starlette.concurrency import run_in_threadpool
-from app.schemas import AthleteRead
+
 from app.db import get_athlete_by_athlete_id
+from app.schemas import AthleteRead
 
 router = APIRouter(prefix="/_debug")
 
@@ -21,7 +23,10 @@ def require_admin_api_key(x_admin_api_key: str | None = Header(None)):
     if app_env == "development":
         return None
     if not admin_key:
-        raise HTTPException(status_code=500, detail="ADMIN_API_KEY not configured for protected debug endpoints")
+        raise HTTPException(
+            status_code=500,
+            detail="ADMIN_API_KEY not configured for protected debug endpoints",
+        )
     if x_admin_api_key != admin_key:
         raise HTTPException(status_code=401, detail="Invalid admin API key")
     return None

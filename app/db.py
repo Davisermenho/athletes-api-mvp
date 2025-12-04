@@ -1,5 +1,5 @@
-import os
 import json
+import os
 from typing import Any, Dict, Optional
 
 from sqlalchemy import create_engine, text
@@ -32,10 +32,11 @@ def upsert_athlete(payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     # verify DATABASE_URL at runtime (deferred) and ensure it's Postgres
     db_url = _get_database_url()
     if "postgres" not in db_url and "postgresql" not in db_url:
-        raise RuntimeError("upsert_athlete currently supports Postgres only (DATABASE_URL must be Postgres).")
+        raise RuntimeError(
+            "upsert_athlete currently supports Postgres only (DATABASE_URL must be Postgres)."
+        )
 
     engine = _get_engine()
-
 
     # Coerce/format a few common types
     def _date_to_iso(val):
@@ -92,7 +93,9 @@ def upsert_athlete(payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         "row_uuid": str(payload.get("row_uuid")) if payload.get("row_uuid") else None,
         "full_name": payload.get("full_name"),
         "nickname": payload.get("nickname"),
-        "birth_date": _date_to_iso(payload.get("birth_date") or payload.get("birth_date")),
+        "birth_date": _date_to_iso(
+            payload.get("birth_date") or payload.get("birth_date")
+        ),
         "age_display": payload.get("age_display"),
         "category": payload.get("category"),
         "main_attack_position": payload.get("main_attack_position"),
@@ -125,9 +128,7 @@ def upsert_athlete(payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
 def get_athlete_by_athlete_id(athlete_id: str) -> Optional[Dict[str, Any]]:
     """Return a single athlete row as dict by `athlete_id`, or None if not found."""
     engine = _get_engine()
-    sql = text(
-        "SELECT * FROM athletes WHERE athlete_id = :athlete_id LIMIT 1"
-    )
+    sql = text("SELECT * FROM athletes WHERE athlete_id = :athlete_id LIMIT 1")
     with engine.begin() as conn:
         result = conn.execute(sql, {"athlete_id": athlete_id})
         row = result.fetchone()

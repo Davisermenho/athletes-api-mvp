@@ -1,21 +1,23 @@
 """create athletes table
 
 Revision ID: 0001_create_athletes_table
-Revises: 
+Revises:
 Create Date: 2025-12-04 00:00:00.000000
 """
-from alembic import op
+
 import sqlalchemy as sa
 
+from alembic import op
+
 # revision identifiers, used by Alembic.
-revision = '0001_create_athletes_table'
+revision = "0001_create_athletes_table"
 down_revision = None
 branch_labels = None
 depends_on = None
 
 
 def upgrade() -> None:
-    sql = '''
+    sql = """
     CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
     CREATE TABLE IF NOT EXISTS athletes (
@@ -50,7 +52,7 @@ def upgrade() -> None:
     DROP TRIGGER IF EXISTS set_timestamp ON athletes;
     CREATE TRIGGER set_timestamp BEFORE UPDATE ON athletes
     FOR EACH ROW EXECUTE FUNCTION trigger_set_timestamp();
-    '''
+    """
     op.execute(sa.text(sql))
 
 
