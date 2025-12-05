@@ -99,7 +99,7 @@ docker compose -f docker-compose.test.yml run --rm app alembic upgrade head
 - Tests: `tests/` (`tests/test_debug_routes.py`) — suite passou localmente (`3 passed`).
 - CI: `.github/workflows/ci.yml` and `.github/workflows/test.yml` (skeleton added)
 
-Arquivos de apoio criados/validados na branch `system`:
+Arquivos de apoio antes mantidos na branch `system` agora fazem parte da branch de trabalho atual (`work`):
 - `MIGRATIONS.md` — instruções para executar migrations manualmente
 - `RENDER_DOCKER_COMMAND.txt` — comando para Render
 - `docker-compose.test.yml`, `run-local.sh`, `CLEANUP.md` — helpers para testes locais com Postgres
